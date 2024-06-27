@@ -1,0 +1,12 @@
+from datetime import datetime
+from src.setup import importValues, createOutputDir, removeOutputDir, main_directory
+from src.classes import Data
+
+
+if __name__ == "__main__":
+    print(datetime.now(), " - Inicializando aplicação.\n")
+    removeOutputDir()
+    createOutputDir()
+    values = importValues("values.dat")
+    dados = Data(values)
+    
