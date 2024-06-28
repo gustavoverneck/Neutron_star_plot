@@ -6,26 +6,44 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 from src.setup import main_directory, open_directory_in_file_explorer
+from time import sleep
 
 class Data:
-    def __init__(self, values):
+    def __init__(self, values, magnetic_field="0.0", model="GM1"):
         print(datetime.now(), " - Preparando dados.")
         self.values = values
+        self.magnetic_field = magnetic_field
+        self.model = model
         self.data = []
+
+        # Plotting settings
+        self.legend_fontsize = 8
+        self.linewidth = 0.5
+        self.grid_alpha = 0.5
+        self.grid_linestyle = "--"
+        
+        self.colors = colors1 = ["r", "g", "b", "c", "m", "y", "k", "pink", 'crimson', 'maroon', 'gold', 'darkorange', 'darkgreen', 'lime', 'gray']
         for value in self.values:
             self.data.append(DataValues(value))
         print(datetime.now(), " - Produzinho gráficos.")
         self.plottingEOS()
         self.plottingTOV()
+        self.plottingPnB()
+        print(datetime.now(), " - Abrindo diretório de saída.")
+        sleep(3)
         open_directory_in_file_explorer(f"{main_directory}/output")
 
     def plottingEOS(self):
         plt.clf()
         for value in self.data:
-            plt.plot(value.e, value.p, label=f"${value.title}$")
-            plt.plot(value.r_max_m, value.max_m, marker=".")
-        plt.legend()
-        plt.title("Equations of State")
+            color = self.colors[self.values.index(value.title)]
+            max_m = value.max_m
+            max_r = value.r_max_m
+            csi = value.title
+            plt.plot(value.e, value.p, label=f"$g={csi}$: {max_r:.4f} km, {max_m:.4f} $M_\odot$", color=color, linewidth=self.linewidth)
+        plt.legend(fontsize=self.legend_fontsize)
+        plt.grid(linestyle=self.grid_linestyle, alpha=self.grid_alpha)
+        plt.title(f"{self.model} - Equations of State for {self.magnetic_field}")
         plt.ylabel("$\epsilon$")
         plt.xlabel("$p$")
         plt.savefig("output/eos.png", dpi=450)
@@ -34,13 +52,36 @@ class Data:
     def plottingTOV(self):
         plt.clf()
         for value in self.data:
-            plt.plot(value.r, value.m, label=f"${value.title}$")
-        plt.legend()
-        plt.title("Mass x Radius diagram")
+            color = self.colors[self.values.index(value.title)]
+            max_m = value.max_m
+            max_r = value.r_max_m
+            csi = value.title
+            plt.plot(value.r, value.m, label=f"$g={csi}$: {max_r:.4f} km, {max_m:.4f} $M_\odot$", color=color, linewidth=self.linewidth)
+            plt.plot(value.r_max_m, value.max_m, marker=".", color=color, markersize=10)
+        plt.legend(fontsize=self.legend_fontsize)
+        plt.title(f"{self.model} - Mass-Radius Diagram for {self.magnetic_field}")
         plt.xlabel("$Radius$ $(km)$")
+        plt.grid(linestyle=self.grid_linestyle, alpha=self.grid_alpha)
         plt.ylabel("$Mass (M_{\odot})$")
         plt.savefig("output/mr.png", dpi=450)
         print(datetime.now(), " - Gráfico massa-raio foi gerado.")
+    
+    def plottingPnB(self):
+        plt.clf()
+        for value in self.data:
+            max_m = value.max_m
+            max_r = value.r_max_m
+            csi = value.title
+            color = self.colors[self.values.index(value.title)]
+            plt.plot(value.nB, value.p, label=f"$g={csi}$: {max_r:.4f} km, {max_m:.4f} $M_\odot$", color=color, linewidth=self.linewidth)
+        plt.legend(fontsize=self.legend_fontsize)
+        plt.grid(linestyle=self.grid_linestyle, alpha=self.grid_alpha)
+        plt.title(f"{self.model} - Pressure-Baryon Number Density relation for {self.magnetic_field}")
+        plt.title("Pressure x Baryon Number Density")
+        plt.xlabel("$n_B \;\; [fm^{-3}]$")
+        plt.ylabel("$p \;\;[fm^{-4}$")
+        plt.savefig("output/pnb.png", dpi=450)
+        print(datetime.now(), " - Gráfico pressão-densidade de número bariônico foi gerado.")
 
     def plottingPopulation(self):
         pass
@@ -51,6 +92,7 @@ class Data:
 class DataValues:
     def __init__(self, title):
         self.title=title
+        self.nB = []
         self.e = []
         self.p = []
         self.m = []
@@ -67,16 +109,17 @@ class DataValues:
             with open(f"input/eos_{self.title}.dat", "r") as f1:
                 for line1 in f1.readlines():
                     line1 = line1.split()
-                    self.e.append(float(line1[0]))
-                    self.p.append(float(line1[1]))
+                    self.nB.append(float(line1[0]))
+                    self.e.append(float(line1[1]))
+                    self.p.append(float(line1[2]))
             del line1
         
         elif filetype=="tov":
             with open(f"input/eos_{self.title}.dat", "r") as f2:
                 for line2 in f2.readlines():
                     line2 = line2.split()
-                    self.m.append(float(line2[0]))
-                    self.r.append(float(line2[1]))
+                    self.m.append(float(line2[1]))
+                    self.r.append(float(line2[2]))
                 del line2
         else:
             raise ValueError("Invalid type.")
