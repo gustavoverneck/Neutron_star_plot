@@ -7,6 +7,6 @@ if __name__ == "__main__":
     print(datetime.now(), " - Inicializando aplicação.\n")
     removeOutputDir()
     createOutputDir()
-    values = importValues("values.dat")
+    values = importValues("valores.dat")
     dados = Data(values, magnetic_field="$B=10^{18}$", model="GM1")
     

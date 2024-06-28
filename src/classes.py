@@ -17,7 +17,7 @@ class Data:
         self.data = []
 
         # Plotting settings
-        self.legend_fontsize = 8
+        self.legend_fontsize = 6
         self.linewidth = 0.5
         self.grid_alpha = 0.5
         self.grid_linestyle = "--"
