@@ -11,7 +11,8 @@ from time import sleep
 class Data:
     def __init__(self, values, magnetic_field="0.0", model="GM1"):
         print(datetime.now(), " - Preparando dados.")
-        self.values = values
+        self.rawValues = values
+        self.readValues()
         self.magnetic_field = magnetic_field
         self.model = model
         self.data = []
@@ -25,12 +26,22 @@ class Data:
         self.colors = colors1 = ["r", "g", "b", "c", "m", "y", "k", "pink", 'crimson', 'maroon', 'gold', 'darkorange', 'darkgreen', 'lime', 'gray']
         for value in self.values:
             self.data.append(DataValues(value))
+
         print(datetime.now(), " - Produzinho gráficos.")
         self.plottingEOS()
         self.plottingTOV()
         self.plottingPnB()
+        self.plottingZoomedEOS()
+        self.plottingZoomedTOV()
         print(datetime.now(), " - Abrindo diretório de saída.")
         open_directory_in_file_explorer(f"{main_directory}/output")
+
+    def readValues(self):
+        self.values = []
+        self.valuesTitles = []
+        for v in self.rawValues:
+            self.values.append(v.split(", ")[0].split("\n")[0])
+            self.valuesTitles.append(v.split(", ")[1])
 
     def plottingEOS(self):
         plt.clf()
@@ -39,11 +50,11 @@ class Data:
             max_m = value.max_m
             max_r = value.r_max_m
             csi = value.title
-            plt.plot(value.e, value.p, label=f"$g={csi}$: {max_r:.4f} km, {max_m:.4f} $M_\odot$", color=color, linewidth=self.linewidth)
+            plt.plot(value.e, value.p, label=f"$\zeta ={self.valuesTitles[self.values.index(value.title)]} : {max_r:.4f} km, {max_m:.4f} M_\odot$", color=color, linewidth=self.linewidth)
         plt.legend(fontsize=self.legend_fontsize)
         plt.grid(linestyle=self.grid_linestyle, alpha=self.grid_alpha)
         plt.title(f"{self.model} - Equations of State for {self.magnetic_field} G")
-        plt.ylabel("$\epsilon$ $fm^{-4}$")
+        plt.ylabel("$\epsilon$ $[fm^{-4}]$")
         plt.xlabel("$p$ $[fm^{-4}]$")
         plt.savefig("output/eos.png", dpi=450)
         print(datetime.now(), " - Gráfico das equações de estado foi gerado.")
@@ -55,13 +66,13 @@ class Data:
             max_m = value.max_m
             max_r = value.r_max_m
             csi = value.title
-            plt.plot(value.r, value.m, label=f"$g={csi}$: {max_r:.4f} km, {max_m:.4f} $M_\odot$", color=color, linewidth=self.linewidth)
+            plt.plot(value.r, value.m, label=f"$\zeta ={self.valuesTitles[self.values.index(value.title)]} : {max_r:.4f} km, {max_m:.4f} M_\odot$", color=color, linewidth=self.linewidth)
             plt.plot(value.r_max_m, value.max_m, marker=".", color=color, markersize=10)
         plt.legend(fontsize=self.legend_fontsize)
         plt.title(f"{self.model} - Mass-Radius Diagram for {self.magnetic_field} G")
-        plt.xlabel("$Radius$ $(km)$")
+        plt.xlabel("$Radius$ $[km]$")
         plt.grid(linestyle=self.grid_linestyle, alpha=self.grid_alpha)
-        plt.ylabel("$Mass (M_{\odot})$")
+        plt.ylabel("$Mass [M_{\odot}]$")
         plt.savefig("output/mr.png", dpi=450)
         print(datetime.now(), " - Gráfico massa-raio foi gerado.")
     
@@ -72,17 +83,49 @@ class Data:
             max_r = value.r_max_m
             csi = value.title
             color = self.colors[self.values.index(value.title)]
-            plt.plot(value.nB, value.p, label=f"$g={csi}$: {max_r:.4f} km, {max_m:.4f} $M_\odot$", color=color, linewidth=self.linewidth)
+            plt.plot(value.nB, value.p, label=f"$\zeta ={self.valuesTitles[self.values.index(value.title)]} : {max_r:.4f} km, {max_m:.4f} M_\odot$", color=color, linewidth=self.linewidth)
         plt.legend(fontsize=self.legend_fontsize)
         plt.grid(linestyle=self.grid_linestyle, alpha=self.grid_alpha)
         plt.title(f"{self.model} - Pressure-Baryon Number Density relation for {self.magnetic_field} G")
         plt.xlabel("$n_B \;\; [fm^{-3}]$")
-        plt.ylabel("$p \;\;[fm^{-4}$")
+        plt.ylabel("$p \;\;[fm^{-4}]$")
         plt.savefig("output/pnb.png", dpi=450)
         print(datetime.now(), " - Gráfico pressão-densidade de número bariônico foi gerado.")
 
-    def plottingPopulation(self):
-        pass
+    def plottingZoomedEOS(self):
+        plt.clf()
+        for value in self.data:
+            color = self.colors[self.values.index(value.title)]
+            max_m = value.max_m
+            max_r = value.r_max_m
+            csi = value.title
+            plt.plot(value.e, value.p, label=f"$\zeta ={self.valuesTitles[self.values.index(value.title)]} : {max_r:.4f} km, {max_m:.4f} M_\odot$", color=color, linewidth=self.linewidth)
+        plt.legend(fontsize=self.legend_fontsize)
+        plt.grid(linestyle=self.grid_linestyle, alpha=self.grid_alpha)
+        plt.title(f"{self.model} - Equations of State for {self.magnetic_field} G")
+        plt.ylabel("$\epsilon$ $[fm^{-4}]$")
+        plt.xlabel("$p$ $[fm^{-4}]$")
+        plt.xlim(0.7, 0.9)
+        plt.ylim(0.9, 1.5)
+        plt.savefig("output/zoomed_eos.png", dpi=450)
+        print(datetime.now(), " - Gráfico das equações de estado com zoom foi gerado.")
+
+    def plottingZoomedTOV(self):
+        plt.clf()
+        for value in self.data:
+            color = self.colors[self.values.index(value.title)]
+            max_m = value.max_m
+            max_r = value.r_max_m
+            csi = value.title
+            plt.plot(value.r, value.m, label=f"$\zeta ={self.valuesTitles[self.values.index(value.title)]} : {max_r:.4f} km, {max_m:.4f} M_\odot$", color=color, linewidth=self.linewidth)
+            plt.plot(value.r_max_m, value.max_m, marker=".", color=color, markersize=10)
+        plt.legend(fontsize=self.legend_fontsize)
+        plt.title(f"{self.model} - Mass-Radius Diagram for {self.magnetic_field} G")
+        plt.xlabel("$Radius$ $[km]$")
+        plt.grid(linestyle=self.grid_linestyle, alpha=self.grid_alpha)
+        plt.ylabel("$Mass [M_{\odot}]$")
+        plt.savefig("output/zoomed_mr.png", dpi=450)
+        print(datetime.now(), " - Gráfico massa-raio com zoom foi gerado.")
     
     def __str__(self):
         return f"Data({self.values})"
