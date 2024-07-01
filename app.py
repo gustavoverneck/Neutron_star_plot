@@ -8,5 +8,5 @@ if __name__ == "__main__":
     removeOutputDir()
     createOutputDir()
     values = importValues("valores.dat")
-    dados = Data(values, magnetic_field="$B=10^{18}$", model="GM1")
+    dados = Data(values, magnetic_field="$B=10^{17}$", model="GM1")
     
